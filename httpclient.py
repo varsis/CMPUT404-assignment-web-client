@@ -100,6 +100,7 @@ class HTTPClient(object):
         host_port = self.get_host_port_path(url)
         socket = self.connect(host_port[0],host_port[1])
         self.sendall(socket,"CRAP")
+        print(self.recvall(socket))
         code = 500
         body = ""
         return HTTPRequest(code, body)
