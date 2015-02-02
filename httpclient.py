@@ -34,31 +34,27 @@ class HTTPRequest(object):
 
 class HTTPClient(object):
 
-    __REGEX_HTTP = "^http:\/\/[A-Za-z0-9\.-]{3,}\.[A-Za-z]{3}"
-    __REGEX_URL = "^[A-Za-z0-9\.-]{3,}\.[A-Za-z]{3}"
-    __REGEX_PORT = "(?:\:[0-9]{2,4})"
+    __REGEX_HTTP = "^(http:\/\/)?([A-Za-z0-9\.-]{3,}\.[A-Za-z]{2,})(\:[0-9]{2,4})?(.*)"
 
-    def get_host_port(self,url):
-        # default port number
+    #regex the url from user and parse it for the host, port and path
+    def get_host_port_path(self,url):
+        # default port number,path and host
         port = 80
+        path = '/'
+        host = None
 
-        host = re.match(self.__REGEX_HTTP,url)
+        http = re.match(self.__REGEX_HTTP,url)
 
-        if host is not None:
-            host = host.group(0)
-            host = host[7:]
-        else:
-            host = re.match(self.__REGEX_URL,url)
-            if host is not None:
-                host = host.group(0)
+        if http is not None:
+            host = http.group(2)
 
-        check_port = re.search(self.__REGEX_PORT,url)
+            if http.group(3) is not None:
+                port = int(http.group(3)[1:])
 
-        if check_port is not None:
-            check_port = check_port.group(0)
-            port = int(check_port[1:])
+            if http.group(4) is not None:
+                path = http.group(4)
 
-        return (host,port)
+        return (host,port,path)
 
 
     def connect(self, host, port):
@@ -101,9 +97,8 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
-        host_port = self.get_host_port(url)
+        host_port = self.get_host_port_path(url)
         socket = self.connect(host_port[0],host_port[1])
-        print(socket)
         self.sendall(socket,"CRAP")
         code = 500
         body = ""
